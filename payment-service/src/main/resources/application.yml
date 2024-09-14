@@ -1,5 +1,10 @@
 server:
+  # Define a porta em que o servidor Spring Boot irá escutar
+  # O valor padrão é 8000, mas pode ser sobrescrito pela variável de ambiente PORT
   port: ${PORT:8000}
+
 spring:
   kafka:
+    # Define os servidores Kafka aos quais a aplicação irá se conectar
+    # O valor padrão é localhost:29092, mas pode ser sobrescrito pela variável de ambiente KAFKA_HOST
     bootstrap-servers: ${KAFKA_HOST:localhost:29092}

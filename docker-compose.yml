@@ -1,5 +1,3 @@
-version: '3'  # Define a versão do formato do docker-compose a ser usada.
-
 services:  # Define os serviços que serão criados dentro do Docker.
 
   # Serviço Zookeeper
