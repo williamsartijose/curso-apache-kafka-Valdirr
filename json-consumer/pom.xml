@@ -8,7 +8,7 @@
         <version>2.6.3</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
-    <groupId>com.wsj</groupId>
+    <groupId>com.valdir</groupId>
     <artifactId>json-consumer</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>json-consumer</name>

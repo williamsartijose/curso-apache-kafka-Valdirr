@@ -1,9 +1,9 @@
-# ConfiguraÁ„o do servidor da aplicaÁ„o Spring Boot
+# Configura√ß√£o do servidor da aplica√ß√£o Spring Boot
 server:
-  port: 8100  # Define a porta em que a aplicaÁ„o ser· executada. Aqui est· configurado para rodar na porta 8100.
+  port: 8100  # Define a porta em que a aplica√ß√£o ser√° executada. Aqui est√° configurado para rodar na porta 8100.
 
 spring:
   kafka:
     consumer:
-      bootstrap-servers: localhost:29092  # Define o endereÁo do Kafka para o consumidor. 
-      # "localhost:29092" indica que o servidor Kafka est· sendo acessado localmente na porta 29092.
+      bootstrap-servers: localhost:29092  # Define o endere√ßo do Kafka para o consumidor.
+      # "localhost:29092" indica que o servidor Kafka est√° sendo acessado localmente na porta 29092.

@@ -1,43 +1,64 @@
-services:  # Define os serviços que serão criados dentro do Docker.
+version: '3.8'  # Define a versão do Docker Compose que estamos usando.
 
-  # Serviço Zookeeper
-  zookeeper:
-    image: confluentinc/cp-zookeeper:latest  # Usa a imagem do Zookeeper do Confluent Kafka.
+
+
+services:  # Define os serviços que serão executados no Docker Compose.
+  zookeeper:  # Nome do serviço Zookeeper.
+    image: confluentinc/cp-zookeeper:latest  # Imagem Docker do Zookeeper a ser usada.
     networks:
-      - broker-kafka  # Define a rede em que o Zookeeper vai operar.
+      - broker-kafka  # Conecta o Zookeeper à rede definida abaixo.
     environment:
-      ZOOKEEPER_CLIENT_PORT: 2181  # Define a porta que o Zookeeper usará para se comunicar com os clientes.
-      ZOOKEEPER_TICK_TIME: 2000  # Define o tempo de "tick" do Zookeeper, que é o intervalo de tempo para sincronização de estado entre o servidor e os nós conectados.
+      ZOOKEEPER_CLIENT_PORT: 2181  # Porta de comunicação do cliente Zookeeper.
+      ZOOKEEPER_TICK_TIME: 2000  # Tempo (em milissegundos) entre ticks do Zookeeper.
 
-  # Serviço Kafka
-  kafka:
-    image: confluentinc/cp-kafka:latest  # Usa a imagem do Kafka do Confluent.
+  kafka:  # Nome do serviço Kafka.
+    image: confluentinc/cp-kafka:latest  # Imagem Docker do Kafka a ser usada.
     networks:
-      - broker-kafka  # Kafka compartilha a mesma rede com o Zookeeper para comunicação.
-    depends_on:
-      - zookeeper  # Define que o Kafka só será iniciado após o Zookeeper estar em funcionamento.
+      - broker-kafka  # Conecta o Kafka à rede definida abaixo.
+    depends_on:  # Define que o Kafka deve iniciar após o Zookeeper estar disponível.
+      - zookeeper
     ports:
-      - "9092:9092"  # Mapeia a porta 9092 do Kafka no container para a porta 9092 do host (para que o Kafka seja acessível externamente).
+      - "9092:9092"  # Mapeia a porta 9092 do contêiner Kafka para a porta 9092 do host.
     environment:
-      KAFKA_BROKER_ID: 1  # Define um ID único para o broker Kafka.
-      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181  # Conecta o Kafka ao Zookeeper, especificando o endereço e a porta.
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092  # Define os listeners (pontos de comunicação) do Kafka. "PLAINTEXT" é usado internamente na rede do Docker, e "PLAINTEXT_HOST" permite acesso via localhost.
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT  # Mapeia os protocolos de segurança para os listeners configurados.
-      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT  # Define o listener que será usado para a comunicação interna entre brokers Kafka.
-      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1  # Define o fator de replicação para o tópico de offsets como 1 (sem replicação), pois é um ambiente de desenvolvimento ou teste.
+      KAFKA_BROKER_ID: 1  # ID único para o broker Kafka.
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181  # Endereço do Zookeeper para o Kafka se conectar.
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092  # Endereços para os quais o Kafka deve anunciar seus listeners.
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT  # Mapeia os protocolos de segurança dos listeners.
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT  # Nome do listener usado para comunicação entre brokers.
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1  # Fator de replicação dos tópicos de offsets.
 
-  # Serviço Kafdrop
-  kafdrop:
-    image: obsidiandynamics/kafdrop:latest  # Usa a imagem do Kafdrop, uma interface gráfica para visualizar e gerenciar o Kafka.
+  kafdrop:  # Nome do serviço Kafdrop, uma interface web para Kafka.
+    image: obsidiandynamics/kafdrop:latest  # Imagem Docker do Kafdrop a ser usada.
     networks:
-      - broker-kafka  # Kafdrop compartilha a mesma rede com Kafka para comunicação.
-    depends_on:
-      - kafka  # Kafdrop só será iniciado após o Kafka estar em funcionamento.
+      - broker-kafka  # Conecta o Kafdrop à rede definida abaixo.
+    depends_on:  # Define que o Kafdrop deve iniciar após o Kafka estar disponível.
+      - kafka
     ports:
-      - "19000:9000"  # Mapeia a porta 9000 do Kafdrop no container para a porta 19000 do host, permitindo acesso via navegador web.
+      - "19000:9000"  # Mapeia a porta 9000 do contêiner Kafdrop para a porta 19000 do host.
     environment:
-      KAFKA_BROKERCONNECT: kafka:29092  # Configura a conexão do Kafdrop com o broker Kafka usando o listener interno (kafka:29092).
+      KAFKA_BROKERCONNECT: kafka:29092  # Endereço do Kafka para o Kafdrop se conectar.
+
+  payment:  # Nome do serviço Payment.
+    image: williamsartijose182/payment:1.0.1  # Imagem Docker do serviço Payment a ser usada.
+    networks:
+      - broker-kafka  # Conecta o Payment à rede definida abaixo.
+    depends_on:  # Define que o Payment deve iniciar após o Kafka estar disponível.
+      - kafka
+    ports:
+      - "8000:8000"  # Mapeia a porta 8000 do contêiner Payment para a porta 8000 do host.
+    environment:
+      KAFKA_HOST: kafka:29092  # Endereço do Kafka para o Payment se conectar.
+
+  consumer:  # Nome do serviço Consumer.
+    image: williamsartijose182/json-consumer:1.0.1  # Imagem Docker do serviço Consumer a ser usada.
+    networks:
+      - broker-kafka  # Conecta o Consumer à rede definida abaixo.
+    depends_on:  # Define que o Consumer deve iniciar após o Kafka e Payment estarem disponíveis.
+      - kafka
+      - payment
+    environment:
+      KAFKA_HOST: kafka:29092  # Endereço do Kafka para o Consumer se conectar.
 
 networks:  # Define as redes que serão usadas pelos serviços.
-  broker-kafka:
-    driver: bridge  # Usa o driver "bridge" para criar uma rede de comunicação entre os containers.
+  broker-kafka:  # Nome da rede.
+    driver: bridge  # Tipo de driver da rede, neste caso, a rede bridge padrão do Docker.

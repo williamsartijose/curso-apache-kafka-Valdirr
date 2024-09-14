@@ -1,4 +1,4 @@
-package com.wsj.jsonconsumer.model;
+package com.valdir.jsonconsumer.model;
 
 import lombok.Getter;
 import lombok.ToString;
